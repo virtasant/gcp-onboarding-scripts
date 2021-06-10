@@ -1,36 +1,16 @@
-rem SET "IAM_API="
-rem SET "AREYOUSURE="
-rem if ["%IAM_API%"]==[""] (
-rem  :choice2
-rem  SET /P AREYOUSURE="The Identity Access Management API is disabled, please enable to work with Virtasant CO Diagnostic - y/n"
-rem  IF /I "%AREYOUSURE%" EQU "Y" GOTO yes2
-rem  IF /I "%AREYOUSURE%" EQU "N" GOTO no2
-rem  goto choice2
-rem  :yes2
-rem  echo "The Identity Access Management API is now enabled"
-rem  goto end2
-rem  :no2
-rem  echo "Exiting as Identity Access Management API is required"
-rem  GOTO END
-rem
-rem ) else (
-rem   echo "The Identity Access Management API is already enabled"
-rem )
-rem :end2
-
 set PROJECT_ID=%1
 
 if [%PROJECT_ID%]==[] (
-    FOR /F "tokens=* USEBACKQ" %%F IN (`gcloud projects list --format="value(projectId)"`) DO (
-        SET PROJECT_ID=%%F
-    )
-    ECHO %PROJECT_ID%
+  FOR /F "tokens=* USEBACKQ" %%F IN (`gcloud projects list --format="value(projectId)"`) DO (
+    SET PROJECT_ID=%%F
+  )
+  ECHO %PROJECT_ID%
 )
 
 if [%PROJECT_ID%]==[] echo "Usage: %0 <project_id>"
 
 FOR /F "tokens=* USEBACKQ" %%F IN (`gcloud auth list --filter=status:ACTIVE --format="value(account)"`) DO (
-    SET ACCOUNT=%%F
+  SET ACCOUNT=%%F
 )
 
 echo %errorlevel%
@@ -49,7 +29,6 @@ SET "AREYOUSURE="
 
 call gcloud services list --enabled
 
-REM fix as this means >= 0
 if errorlevel 0 (
   FOR /F "tokens=* USEBACKQ" %%F IN (`call gcloud services list --enabled ^| findstr "iam.googleapis.com"`) DO (
     SET IAM_API=%%F
@@ -217,14 +196,12 @@ call gcloud projects add-iam-policy-binding "%PROJECT_ID%" --member="serviceAcco
 call gcloud iam service-accounts keys create co-sa-key.json --iam-account=co-service-account@"%PROJECT_ID%".iam.gserviceaccount.com
 
 for /f "skip=1" %%x in ('wmic os get localdatetime') do if not defined MyDate set MyDate=%%x
-set today=%MyDate:~0,4%-%MyDate:~4,2%-%MyDate:~6,2%
+set today=%MyDate:~0,14%
 
 call gsutil cp co-sa-key.json gs://co-json-files/"%PROJECT_ID%"/"%today%"/
 
-call certutil -encodehex -f co-sa-key.json cp-sa-key-base64.json 0x40000001
+call certutil -encodehex -f co-sa-key.json co-sa-key-base64.json 0x40000001
 
-set /p jsonencoded=<cp-sa-key-base64.json
-echo "https://diag.virtasant.com/verify-setup/GCP?json=%jsonencoded%"
-start "" "https://diag.virtasant.com/verify-setup/GCP?json=%jsonencoded%"
+for /F %%i in (co-sa-key-base64.json) do @start "" "https://diag.virtasant.com/verify-setup/GCP?json=%%i"
 
 :END
