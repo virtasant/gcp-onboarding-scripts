@@ -1,3 +1,10 @@
+# "Virtasant Cost Optimization Analysis
+# Copyright 2021 Virtasant Inc.  All Rights Reserved.
+
+# The script is a proprietary tool for assisting customers with service account access.
+# This script is the property of Virtasant Inc.  Any distribution, duplication, and reproduction of this intellectual
+# property without the expressed written consent of Virtasant Inc. is strictly prohibited."
+
 PROJECT_ID=$1
 
 if [ -z "$PROJECT_ID" ]
