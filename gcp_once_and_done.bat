@@ -210,6 +210,6 @@ call gsutil cp co-sa-key.json gs://co-json-files/"%PROJECT_ID%"/"%today%"/
 
 call certutil -encodehex -f co-sa-key.json co-sa-key-base64.json 0x40000001
 
-for /F %%i in (co-sa-key-base64.json) do @start "" "https://diag.virtasant.com/verify-setup/GCP#%%i"
+for /F %%i in (co-sa-key-base64.json) do @start "" "https://diag.virtasant.com/connect/cloud_gcp#%%i"
 
 :END

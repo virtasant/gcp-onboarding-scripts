@@ -153,5 +153,5 @@ gcloud iam service-accounts keys create co-sa-key.json --iam-account=co-service-
 DATE_ISO=$(date +"%Y%m%d-%H%M%S")
 gsutil cp co-sa-key.json gs://co-json-files/"$PROJECT_ID"/"$DATE_ISO"/
 BUCKET_PARAM=$(< co-sa-key.json base64)
-echo "opening https://diag.virtasant.com/verify-setup/GCP#$BUCKET_PARAM"
-open "https://diag.virtasant.com/verify-setup/GCP#$BUCKET_PARAM"
+echo "opening https://diag.virtasant.com/connect/cloud_gcp#$BUCKET_PARAM"
+open "https://diag.virtasant.com/connect/cloud_gcp#$BUCKET_PARAM"
