@@ -9,7 +9,7 @@ PROJECT_ID=$1
 
 if [ -z "$PROJECT_ID" ]
 then
-  PROJECT_ID=$(gcloud projects list --format="value(projectId)")
+  PROJECT_ID=$(gcloud config list | awk '{ if ( $1 == "project" ) { print $3 } } ')
 fi
 
 if [ -z "$PROJECT_ID" ]
