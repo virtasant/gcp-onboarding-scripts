@@ -69,13 +69,15 @@ else
   echo "The Cloud Deployment Manager is already enabled"
 fi
 
+ACCOUNT_TYPE=$(echo "$ACCOUNT" | awk '{ if ($1~"gserviceaccount") { print "serviceAccount" } else { print "user" } }')
+
 if [ -z $(echo "$ROLES" | grep owner) ]
 then
   while true; do
       read -n 1 -p "The roles/owner is needed, please reply to add role to the account - y/n" yn
       case $yn in
           [Yy]* )
-          if gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$ACCOUNT" --role="roles/owner"
+          if gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="$ACCOUNT_TYPE:$ACCOUNT" --role="roles/owner"
           then
             echo "roles/owner is now added to user"
           else
@@ -96,7 +98,7 @@ then
   while true; do
       read -n 1 -p "The roles/deploymentmanager.editor is needed, please reply to add role to the account - y/n" yn
       case $yn in
-          [Yy]* ) gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$ACCOUNT" --role="roles/deploymentmanager.editor"
+          [Yy]* ) gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="$ACCOUNT_TYPE:$ACCOUNT" --role="roles/deploymentmanager.editor"
           echo "roles/deploymentmanager.editor is now added to user"
           break;;
           [Nn]* ) echo "Exiting as roles/deploymentmanager.editor is required"; exit;;
@@ -112,14 +114,14 @@ then
   while true; do
       read -n 1 -p "The roles/iam.serviceAccountAdmin is needed, please reply to add role to the account - y/n" yn
       case $yn in
-          [Yy]* ) gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$ACCOUNT" --role="roles/iam.serviceAccountAdmin"
+          [Yy]* ) gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="$ACCOUNT_TYPE:$ACCOUNT" --role="roles/iam.serviceAccountAdmin"
           echo "roles/iam.serviceAccountAdmin is now added to user"
           break;;
           [Nn]* ) echo "Exiting as roles/iam.serviceAccountAdmin is required"; exit;;
           * ) echo "Please answer yes or no.";;
       esac
   done
-  gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$ACCOUNT" --role="roles/iam.serviceAccountAdmin"
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="$ACCOUNT_TYPE:$ACCOUNT" --role="roles/iam.serviceAccountAdmin"
   echo "it isn't iam.serviceAccountAdmin"
 else
   echo "it's iam.serviceAccountAdmin"
