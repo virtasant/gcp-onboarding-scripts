@@ -14,8 +14,7 @@ fi
 
 if [ -z "$PROJECT_ID" ]
 then
-  echo "Usage: $0 <project_id>"
-  exit 1
+  read -p "Project not found in your configuration please write the PROJECT_ID " PROJECT_ID
 fi
 
 ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
@@ -28,9 +27,9 @@ else
   echo "Unable to obtain roles of the user please make sure gcloud user has owner role or at least resourcemanager.projects.getIamPolicy permission" ; exit ;
 fi
 
-if gcloud services list --enabled
+if gcloud services list --enabled --project "$PROJECT_ID"
 then
-  IAM_API=$(gcloud services list --enabled | grep "iam.googleapis.com")
+  IAM_API=$(gcloud services list --enabled --project "$PROJECT_ID"| grep "iam.googleapis.com")
 else
   echo "Unable to get the service list please make sure gcloud user has owner role or at least serviceusage.services.list permission" ; exit ;
 fi
@@ -38,7 +37,7 @@ fi
 if [ -z "$IAM_API" ]
 then
   while true; do
-      read -n 1 -p "The Identity Access Management API is disabled, please enable to work with Virtasant CO Diagnostic - y/n" yn
+      read -n 1 -p "The Identity Access Management API is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
       case $yn in
           [Yy]* ) gcloud services enable "iam.googleapis.com"
           echo "The Identity Access Management API is now enabled"
@@ -51,12 +50,12 @@ else
   echo "The Identity Access Management API is already enabled"
 fi
 
-CDM_API=$(gcloud services list --enabled | grep "deploymentmanager.googleapis.com")
+CDM_API=$(gcloud services list --enabled --project $PROJECT_ID   | grep "deploymentmanager.googleapis.com")
 
 if [ -z "$IAM_API" ]
 then
   while true; do
-      read -n 1 -p "The Cloud Deployment Manager is disabled, please enable to work with Virtasant CO Diagnostic - y/n" yn
+      read -n 1 -p "The Cloud Deployment Manager is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
       case $yn in
           [Yy]* ) gcloud services enable "deploymentmanager.googleapis.com"
           echo "Cloud Deployment Manager is now enabled"
@@ -74,7 +73,7 @@ ACCOUNT_TYPE=$(echo "$ACCOUNT" | awk '{ if ($1~"gserviceaccount") { print "servi
 if [ -z $(echo "$ROLES" | grep owner) ]
 then
   while true; do
-      read -n 1 -p "The roles/owner is needed, please reply to add role to the account - y/n" yn
+      read -n 1 -p "The roles/owner is needed, please reply to add role to the account - y/n " yn
       case $yn in
           [Yy]* )
           if gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="$ACCOUNT_TYPE:$ACCOUNT" --role="roles/owner"
@@ -96,7 +95,7 @@ fi
 if [ -z $(echo "$ROLES" | grep deploymentmanager.editor) ]
 then
   while true; do
-      read -n 1 -p "The roles/deploymentmanager.editor is needed, please reply to add role to the account - y/n" yn
+      read -n 1 -p "The roles/deploymentmanager.editor is needed, please reply to add role to the account - y/n " yn
       case $yn in
           [Yy]* ) gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="$ACCOUNT_TYPE:$ACCOUNT" --role="roles/deploymentmanager.editor"
           echo "roles/deploymentmanager.editor is now added to user"
@@ -112,7 +111,7 @@ fi
 if [ -z $(echo "$ROLES" | grep iam.serviceAccountAdmin) ]
 then
   while true; do
-      read -n 1 -p "The roles/iam.serviceAccountAdmin is needed, please reply to add role to the account - y/n" yn
+      read -n 1 -p "The roles/iam.serviceAccountAdmin is needed, please reply to add role to the account - y/n " yn
       case $yn in
           [Yy]* ) gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="$ACCOUNT_TYPE:$ACCOUNT" --role="roles/iam.serviceAccountAdmin"
           echo "roles/iam.serviceAccountAdmin is now added to user"
@@ -127,11 +126,11 @@ else
   echo "it's iam.serviceAccountAdmin"
 fi
 
-CO_DEPLOYMENT=$(gcloud deployment-manager deployments list | grep co-deployment)
+CO_DEPLOYMENT=$(gcloud deployment-manager deployments list --project "$PROJECT_ID"| grep co-deployment)
 
 if [ -z "$CO_DEPLOYMENT" ]
 then
-  if gcloud deployment-manager deployments create co-deployment --template https://storage.googleapis.com/co-virtasant/service_account.jinja
+  if gcloud deployment-manager deployments create co-deployment --project "$PROJECT_ID" --template https://storage.googleapis.com/co-virtasant/service_account.jinja
   then
     echo "co-deployment updated"
   else
@@ -139,7 +138,7 @@ then
     exit
   fi
 else
-  if gcloud deployment-manager deployments update co-deployment --template https://storage.googleapis.com/co-virtasant/service_account.jinja
+  if gcloud deployment-manager deployments update co-deployment --project "$PROJECT_ID" --template https://storage.googleapis.com/co-virtasant/service_account.jinja
   then
     echo "co-deployment updated"
   else
@@ -150,10 +149,8 @@ fi
 
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:co-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role="projects/$PROJECT_ID/roles/co_custom_role"
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:co-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role="roles/iam.serviceAccountUser"
-gcloud iam service-accounts keys create co-sa-key.json --iam-account=co-service-account@"$PROJECT_ID".iam.gserviceaccount.com
+gcloud iam service-accounts keys create co-sa-key.json --project "$PROJECT_ID" --iam-account=co-service-account@"$PROJECT_ID".iam.gserviceaccount.com
 
-DATE_ISO=$(date +"%Y%m%d-%H%M%S")
-gsutil cp co-sa-key.json gs://co-json-files/"$PROJECT_ID"/"$DATE_ISO"/
 BUCKET_PARAM=$(< co-sa-key.json base64)
 echo "opening https://diag.virtasant.com/connect/cloud_gcp#$BUCKET_PARAM"
 open "https://diag.virtasant.com/connect/cloud_gcp#$BUCKET_PARAM"
