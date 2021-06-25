@@ -126,6 +126,8 @@ else
   echo "it's iam.serviceAccountAdmin"
 fi
 
+SERVICES_ACCOUNT=$(gcloud projects get-iam-policy "$PROJECT_ID" | awk '{ if ( $2~"cloudservices" ) { split($2,a,":"); print a[2]; } }' | tail -n1)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$SERVICES_ACCOUNT" --role="roles/owner"
 CO_DEPLOYMENT=$(gcloud deployment-manager deployments list --project "$PROJECT_ID"| grep co-deployment)
 
 if [ -z "$CO_DEPLOYMENT" ]
@@ -147,8 +149,6 @@ else
   fi
 fi
 
-gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:co-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role="projects/$PROJECT_ID/roles/co_custom_role"
-gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:co-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role="roles/iam.serviceAccountUser"
 gcloud iam service-accounts keys create co-sa-key.json --project "$PROJECT_ID" --iam-account=co-service-account@"$PROJECT_ID".iam.gserviceaccount.com
 
 BUCKET_PARAM=$(< co-sa-key.json base64)
