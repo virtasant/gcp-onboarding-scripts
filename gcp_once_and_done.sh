@@ -75,8 +75,8 @@ then
   while true; do
       read -n 1 -p "The Compute Engine API is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
       case $yn in
-          [Yy]* ) echo "Enabling Compute Engine API takes a long time, please wait until it finishes"
-          gcloud services enable "compute.googleapis.com"
+          [Yy]* ) printf "\nEnabling Compute Engine API may take a long time, please wait until it finishes"
+          if ! gcloud services enable "compute.googleapis.com" ; then exit; fi;
           echo "Compute Engine API is now enabled"
           break;;
           [Nn]* ) echo "Exiting as Compute Engine API is required"; exit;;
