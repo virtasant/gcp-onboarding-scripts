@@ -52,7 +52,7 @@ fi
 
 CDM_API=$(gcloud services list --enabled --project $PROJECT_ID   | grep "deploymentmanager.googleapis.com")
 
-if [ -z "$IAM_API" ]
+if [ -z "$CDM_API" ]
 then
   while true; do
       read -n 1 -p "The Cloud Deployment Manager is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
@@ -67,6 +67,26 @@ then
 else
   echo "The Cloud Deployment Manager is already enabled"
 fi
+
+COMPUTE_API=$(gcloud services list --enabled --project $PROJECT_ID   | grep "compute.googleapis.com")
+
+if [ -z "$COMPUTE_API" ]
+then
+  while true; do
+      read -n 1 -p "The Compute Engine API is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
+      case $yn in
+          [Yy]* ) echo "Enabling Compute Engine API takes a long time, please wait until it finishes"
+          gcloud services enable "compute.googleapis.com"
+          echo "Compute Engine API is now enabled"
+          break;;
+          [Nn]* ) echo "Exiting as Compute Engine API is required"; exit;;
+          * ) echo "Please answer yes or no.";;
+      esac
+  done
+else
+  echo "Compute Engine API is already enabled"
+fi
+
 
 ACCOUNT_TYPE=$(echo "$ACCOUNT" | awk '{ if ($1~"gserviceaccount") { print "serviceAccount" } else { print "user" } }')
 
@@ -149,6 +169,8 @@ else
   fi
 fi
 
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:co-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role="projects/$PROJECT_ID/roles/co_custom_role"
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:co-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role="roles/iam.serviceAccountUser"
 gcloud iam service-accounts keys create co-sa-key.json --project "$PROJECT_ID" --iam-account=co-service-account@"$PROJECT_ID".iam.gserviceaccount.com
 
 BUCKET_PARAM=$(< co-sa-key.json base64)
