@@ -87,6 +87,25 @@ else
   echo "Compute Engine API is already enabled"
 fi
 
+CLOUD_SQL_API=$(gcloud services list --enabled --project $PROJECT_ID   | grep "sql-component.googleapis.com")
+
+if [ -z "$CLOUD_SQL_API" ]
+then
+  while true; do
+      read -n 1 -p "The Cloud SQL API is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
+      case $yn in
+          [Yy]* )
+          if ! gcloud services enable "sql-component.googleapis.com" ; then exit; fi;
+          echo "Cloud SQL API is now enabled"
+          break;;
+          [Nn]* ) echo "Exiting as Cloud SQL API is required"; exit;;
+          * ) echo "Please answer yes or no.";;
+      esac
+  done
+else
+  echo "Cloud SQL API is already enabled"
+fi
+
 
 ACCOUNT_TYPE=$(echo "$ACCOUNT" | awk '{ if ($1~"gserviceaccount") { print "serviceAccount" } else { print "user" } }')
 
