@@ -39,7 +39,7 @@ then
   while true; do
       read -n 1 -p "The Identity Access Management API is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
       case $yn in
-          [Yy]* ) gcloud services enable "iam.googleapis.com"
+          [Yy]* ) gcloud services enable "iam.googleapis.com" --project "$PROJECT_ID"
           echo "The Identity Access Management API is now enabled"
           break;;
           [Nn]* ) echo "Exiting as Identity Access Management API is required"; exit;;
@@ -57,7 +57,7 @@ then
   while true; do
       read -n 1 -p "The Cloud Deployment Manager is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
       case $yn in
-          [Yy]* ) gcloud services enable "deploymentmanager.googleapis.com"
+          [Yy]* ) gcloud services enable "deploymentmanager.googleapis.com" --project "$PROJECT_ID"
           echo "Cloud Deployment Manager is now enabled"
           break;;
           [Nn]* ) echo "Exiting as Cloud Deployment Manager is required"; exit;;
@@ -76,7 +76,7 @@ then
       read -n 1 -p "The Compute Engine API is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
       case $yn in
           [Yy]* ) printf "\nEnabling Compute Engine API may take a long time, please wait until it finishes"
-          if ! gcloud services enable "compute.googleapis.com" ; then exit; fi;
+          if ! gcloud services enable "compute.googleapis.com" --project "$PROJECT_ID" ; then exit; fi;
           echo "Compute Engine API is now enabled"
           break;;
           [Nn]* ) echo "Exiting as Compute Engine API is required"; exit;;
@@ -95,7 +95,7 @@ then
       read -n 1 -p "The Cloud SQL API is disabled, please enable to work with Virtasant CO Diagnostic - y/n " yn
       case $yn in
           [Yy]* )
-          if ! gcloud services enable "sql-component.googleapis.com" ; then exit; fi;
+          if ! gcloud services enable "sql-component.googleapis.com" --project "$PROJECT_ID" ; then exit; fi;
           echo "Cloud SQL API is now enabled"
           break;;
           [Nn]* ) echo "Exiting as Cloud SQL API is required"; exit;;
